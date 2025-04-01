@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Simple Mobile View Switcher</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <h1>Select User-Agent</h1>
+  
+  <div class="radio-option">
+    <input type="radio" id="android" name="ua" value="Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36">
+    <label for="android">Android</label>
+  </div>
+  <div class="radio-option">
+    <input type="radio" id="ios" name="ua" value="Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1">
+    <label for="ios">iOS</label>
+  </div>
+  <div class="radio-option">
+    <input type="radio" id="desktop" name="ua" value="">
+    <label for="desktop">Desktop (Default)</label>
+  </div>
+  <div class="custom-option">
+    <input type="radio" id="custom" name="ua">
+    <label for="custom">Custom User-Agent:</label>
+    <textarea id="custom_ua" placeholder="Enter custom User-Agent string here"></textarea>
+  </div>
+  <button id="save">Save</button>
+  <script src="options.js"></script>
+</body>
+</html>
