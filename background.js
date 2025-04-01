@@ -8,45 +8,110 @@ chrome.runtime.onInstalled.addListener(() => {
   });
   
   // Initialize rules
-  updateRules('');
+  updateRules();
 });
+
 // Listen for changes to the user agent setting
 chrome.storage.onChanged.addListener((changes) => {
-  if (changes.userAgent) {
-    updateRules(changes.userAgent.newValue);
+  if (changes.userAgent || changes.websiteRules) {
+    updateRules();
   }
 });
+
 // Function to update the declarativeNetRequest rules
-function updateRules(userAgent) {
-  if (!userAgent) {
-    // If empty (desktop), remove any existing rules
-    chrome.declarativeNetRequest.updateDynamicRules({
-      removeRuleIds: [1]
-    });
-    return;
-  }
-  // Create a rule to modify the User-Agent header
-  const rule = {
-    id: 1,
-    priority: 1,
-    action: {
-      type: 'modifyHeaders',
-      requestHeaders: [
-        {
-          header: 'User-Agent',
-          operation: 'set',
-          value: userAgent
-        }
-      ]
-    },
-    condition: {
-      urlFilter: '*',
-      resourceTypes: ['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object', 'xmlhttprequest', 'ping', 'csp_report', 'media', 'websocket', 'other']
+function updateRules() {
+  chrome.storage.sync.get(['userAgent', 'websiteRules'], (result) => {
+    const globalUserAgent = result.userAgent || '';
+    const websiteRules = result.websiteRules || {};
+    
+    // Start with an empty array of rules
+    const rules = [];
+    let ruleId = 1;
+    
+    // Add website-specific rules first (higher priority)
+    for (const domain in websiteRules) {
+      const rule = websiteRules[domain];
+      const userAgent = rule.userAgent;
+      
+      if (userAgent) {
+        rules.push({
+          id: ruleId++,
+          priority: 100, // Higher priority than global rule
+          action: {
+            type: 'modifyHeaders',
+            requestHeaders: [
+              {
+                header: 'User-Agent',
+                operation: 'set',
+                value: userAgent
+              }
+            ]
+          },
+          condition: {
+            urlFilter: `*://*.${domain}/*`,
+            resourceTypes: ['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object', 'xmlhttprequest', 'ping', 'csp_report', 'media', 'websocket', 'other']
+          }
+        });
+        
+        // Also match the domain without subdomain
+        rules.push({
+          id: ruleId++,
+          priority: 100,
+          action: {
+            type: 'modifyHeaders',
+            requestHeaders: [
+              {
+                header: 'User-Agent',
+                operation: 'set',
+                value: userAgent
+              }
+            ]
+          },
+          condition: {
+            urlFilter: `*://${domain}/*`,
+            resourceTypes: ['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object', 'xmlhttprequest', 'ping', 'csp_report', 'media', 'websocket', 'other']
+          }
+        });
+      }
     }
-  };
-  // Update the rules
-  chrome.declarativeNetRequest.updateDynamicRules({
-    removeRuleIds: [1],
-    addRules: [rule]
+    
+    // Add global rule if set (lower priority)
+    if (globalUserAgent) {
+      rules.push({
+        id: ruleId++,
+        priority: 1, // Lower priority than website-specific rules
+        action: {
+          type: 'modifyHeaders',
+          requestHeaders: [
+            {
+              header: 'User-Agent',
+              operation: 'set',
+              value: globalUserAgent
+            }
+          ]
+        },
+        condition: {
+          urlFilter: '*',
+          resourceTypes: ['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object', 'xmlhttprequest', 'ping', 'csp_report', 'media', 'websocket', 'other']
+        }
+      });
+    }
+    
+    // Get all existing rule IDs to remove them
+    chrome.declarativeNetRequest.getDynamicRules((existingRules) => {
+      const existingRuleIds = existingRules.map(rule => rule.id);
+      
+      // Update the rules
+      chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: existingRuleIds,
+        addRules: rules
+      }, () => {
+        if (chrome.runtime.lastError) {
+          console.error('Error updating rules:', chrome.runtime.lastError);
+        } else {
+          console.log('Rules updated successfully:', rules);
+        }
+      });
+    });
   });
 }
