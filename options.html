@@ -32,6 +32,7 @@
   <hr>
 
   <h1>Website-Specific Settings</h1>
+  <p class="info-text">These settings override the global User-Agent for specific websites.</p>
   <div id="website-rules">
     <!-- Website rules will be displayed here -->
   </div>
@@ -39,8 +40,9 @@
   <div class="add-website-rule">
     <h3>Add New Website Rule</h3>
     <div>
-      <label for="website-url">Website URL (e.g., youtube.com):</label>
-      <input type="text" id="website-url" placeholder="Enter domain without http:// or www.">
+      <label for="website-url">Website Domain:</label>
+      <input type="text" id="website-url" placeholder="e.g., google.com, youtube.com">
+      <p class="hint">Enter only the domain name without http://, www, or paths</p>
     </div>
     <div>
       <label for="website-ua-select">User-Agent:</label>

@@ -62,13 +62,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Add website rule button click handler
   addWebsiteRuleButton.addEventListener('click', () => {
-    const domain = websiteUrlInput.value.trim().toLowerCase();
+    let domain = websiteUrlInput.value.trim().toLowerCase();
     
     // Validate domain
     if (!domain) {
       showStatusMessage('Please enter a valid domain', true);
       return;
     }
+    
+    // Clean the domain (remove http://, https://, www.)
+    domain = domain.replace(/^(https?:\/\/)?(www\.)?/, '');
+    
+    // Further clean the domain (remove any paths or query parameters)
+    domain = domain.split('/')[0].split('?')[0];
     
     // Get the selected user agent type
     const uaType = websiteUaSelect.value;

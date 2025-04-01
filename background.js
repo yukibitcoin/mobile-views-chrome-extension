@@ -34,6 +34,10 @@ function updateRules() {
       const userAgent = rule.userAgent;
       
       if (userAgent) {
+        // Create a clean domain without protocol or www
+        const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '');
+        
+        // Add rule for domain with any subdomain (*.domain.com)
         rules.push({
           id: ruleId++,
           priority: 100, // Higher priority than global rule
@@ -48,12 +52,12 @@ function updateRules() {
             ]
           },
           condition: {
-            urlFilter: `*://*.${domain}/*`,
+            urlFilter: `*://*.${cleanDomain}/*`,
             resourceTypes: ['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object', 'xmlhttprequest', 'ping', 'csp_report', 'media', 'websocket', 'other']
           }
         });
         
-        // Also match the domain without subdomain
+        // Add rule for exact domain (domain.com)
         rules.push({
           id: ruleId++,
           priority: 100,
@@ -68,7 +72,27 @@ function updateRules() {
             ]
           },
           condition: {
-            urlFilter: `*://${domain}/*`,
+            urlFilter: `*://${cleanDomain}/*`,
+            resourceTypes: ['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object', 'xmlhttprequest', 'ping', 'csp_report', 'media', 'websocket', 'other']
+          }
+        });
+        
+        // Add rule for domain without path (domain.com)
+        rules.push({
+          id: ruleId++,
+          priority: 100,
+          action: {
+            type: 'modifyHeaders',
+            requestHeaders: [
+              {
+                header: 'User-Agent',
+                operation: 'set',
+                value: userAgent
+              }
+            ]
+          },
+          condition: {
+            urlFilter: `*://${cleanDomain}`,
             resourceTypes: ['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object', 'xmlhttprequest', 'ping', 'csp_report', 'media', 'websocket', 'other']
           }
         });
