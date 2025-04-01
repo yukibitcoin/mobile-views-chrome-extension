@@ -71,10 +71,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Clean the domain (remove http://, https://, www.)
-    domain = domain.replace(/^(https?:\/\/)?(www\.)?/, '');
+    domain = cleanDomain(domain);
     
-    // Further clean the domain (remove any paths or query parameters)
-    domain = domain.split('/')[0].split('?')[0];
+    // Validate domain after cleaning
+    if (!domain) {
+      showStatusMessage('Please enter a valid domain', true);
+      return;
+    }
     
     // Get the selected user agent type
     const uaType = websiteUaSelect.value;
@@ -111,7 +114,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // Reload the rules display
         loadWebsiteRules();
         
+        // Log the updated rules for debugging
+        console.log('Website rules updated:', websiteRules);
+        
         showStatusMessage('Website rule added!');
+        
+        // Trigger rule update
+        updateRules();
       });
     });
   });
@@ -207,9 +216,37 @@ document.addEventListener('DOMContentLoaded', () => {
         // Reload the rules display
         loadWebsiteRules();
         
+        // Log the updated rules for debugging
+        console.log('Website rule deleted. Updated rules:', websiteRules);
+        
         showStatusMessage('Website rule deleted!');
+        
+        // Trigger rule update
+        updateRules();
       });
     });
+  }
+
+  // Helper function to clean domain
+  function cleanDomain(domain) {
+    // Remove protocol (http://, https://)
+    domain = domain.replace(/^(https?:\/\/)/i, '');
+    
+    // Remove www.
+    domain = domain.replace(/^www\./i, '');
+    
+    // Remove any paths or query parameters
+    domain = domain.split('/')[0].split('?')[0].split('#')[0];
+    
+    // Remove trailing dots
+    domain = domain.replace(/\.$/, '');
+    
+    // Trim whitespace
+    domain = domain.trim();
+    
+    console.log(`Cleaned domain: "${domain}"`);
+    
+    return domain;
   }
 
   // Helper function to show status message
@@ -230,5 +267,11 @@ document.addEventListener('DOMContentLoaded', () => {
   function truncateString(str, maxLength) {
     if (str.length <= maxLength) return str;
     return str.substring(0, maxLength) + '...';
+  }
+  
+  // Helper function to trigger rule update in background script
+  function updateRules() {
+    // This will trigger the storage.onChanged listener in the background script
+    chrome.runtime.sendMessage({ action: 'updateRules' });
   }
 });
