@@ -1,0 +1,42 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  min-width: 300px;
+}
+h1 {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 15px;
+}
+label {
+  display: inline-block;
+  margin-left: 5px;
+  margin-bottom: 10px;
+}
+textarea {
+  width: 100%;
+  height: 60px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  padding: 5px;
+  font-family: monospace;
+  font-size: 12px;
+}
+button {
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+button:hover {
+  background-color: #3367d6;
+}
+.radio-option {
+  margin-bottom: 10px;
+}
+.custom-option {
+  margin-top: 10px;
+}
