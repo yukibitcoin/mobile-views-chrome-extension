@@ -35,7 +35,7 @@ textarea {
 input[type="text"] {
   width: 100%;
   padding: 5px;
-  margin-bottom: 10px;
+  margin-bottom: 5px;
   font-size: 14px;
 }
 
@@ -105,4 +105,19 @@ hr {
   margin-left: 5px;
   padding: 4px 8px;
   font-size: 12px;
+}
+
+.info-text {
+  color: #666;
+  font-size: 14px;
+  margin-top: -10px;
+  margin-bottom: 15px;
+}
+
+.hint {
+  color: #888;
+  font-size: 12px;
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-style: italic;
 }
