@@ -53,10 +53,29 @@ For example, you can set iOS as your global User-Agent, but specify that youtube
 ## Troubleshooting
 
 If website-specific rules aren't working:
+
 1. Make sure you've entered just the domain name (e.g., "google.com") without "http://", "www.", or any paths
 2. Check that you've saved the rule by clicking "Add Rule"
 3. Refresh the website to apply the new User-Agent
 4. Clear browser cache if needed
+5. Try opening the browser console (F12 > Console tab) to see debugging information
+6. For domains like "google.com", make sure there are no trailing slashes or other characters
+7. If still not working, try removing and re-adding the rule
+
+## How It Works
+
+The extension uses Chrome's declarativeNetRequest API to modify the User-Agent header for outgoing requests. For website-specific rules, it creates multiple URL patterns to match different variations of the domain (with and without www, with and without paths).
+
+Website-specific rules have higher priority than the global setting, so they will override the global User-Agent when you visit matching domains.
+
+## Debugging
+
+To see what's happening behind the scenes:
+
+1. Open Chrome DevTools (F12 or right-click > Inspect)
+2. Go to the Console tab
+3. Look for log messages from the extension showing which rules are being applied
+4. You can also check the Network tab to verify the User-Agent being sent with requests
 
 ## License
 

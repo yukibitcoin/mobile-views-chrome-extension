@@ -18,6 +18,13 @@ chrome.storage.onChanged.addListener((changes) => {
   }
 });
 
+// Listen for messages from options page
+chrome.runtime.onMessage.addListener((message) => {
+  if (message.action === 'updateRules') {
+    updateRules();
+  }
+});
+
 // Function to update the declarativeNetRequest rules
 function updateRules() {
   chrome.storage.sync.get(['userAgent', 'websiteRules'], (result) => {
@@ -35,9 +42,14 @@ function updateRules() {
       
       if (userAgent) {
         // Create a clean domain without protocol or www
-        const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '');
+        const cleanDomain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').trim();
         
-        // Add rule for domain with any subdomain (*.domain.com)
+        // Skip if domain is empty after cleaning
+        if (!cleanDomain) continue;
+        
+        console.log(`Creating rules for domain: ${cleanDomain} with UA: ${userAgent.substring(0, 30)}...`);
+        
+        // Add rule for domain with path (domain.com/*)
         rules.push({
           id: ruleId++,
           priority: 100, // Higher priority than global rule
@@ -52,27 +64,7 @@ function updateRules() {
             ]
           },
           condition: {
-            urlFilter: `*://*.${cleanDomain}/*`,
-            resourceTypes: ['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object', 'xmlhttprequest', 'ping', 'csp_report', 'media', 'websocket', 'other']
-          }
-        });
-        
-        // Add rule for exact domain (domain.com)
-        rules.push({
-          id: ruleId++,
-          priority: 100,
-          action: {
-            type: 'modifyHeaders',
-            requestHeaders: [
-              {
-                header: 'User-Agent',
-                operation: 'set',
-                value: userAgent
-              }
-            ]
-          },
-          condition: {
-            urlFilter: `*://${cleanDomain}/*`,
+            urlFilter: `||${cleanDomain}/`,
             resourceTypes: ['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object', 'xmlhttprequest', 'ping', 'csp_report', 'media', 'websocket', 'other']
           }
         });
@@ -92,7 +84,27 @@ function updateRules() {
             ]
           },
           condition: {
-            urlFilter: `*://${cleanDomain}`,
+            urlFilter: `||${cleanDomain}^`,
+            resourceTypes: ['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object', 'xmlhttprequest', 'ping', 'csp_report', 'media', 'websocket', 'other']
+          }
+        });
+        
+        // Add rule for www subdomain (www.domain.com)
+        rules.push({
+          id: ruleId++,
+          priority: 100,
+          action: {
+            type: 'modifyHeaders',
+            requestHeaders: [
+              {
+                header: 'User-Agent',
+                operation: 'set',
+                value: userAgent
+              }
+            ]
+          },
+          condition: {
+            urlFilter: `||www.${cleanDomain}`,
             resourceTypes: ['main_frame', 'sub_frame', 'stylesheet', 'script', 'image', 'font', 'object', 'xmlhttprequest', 'ping', 'csp_report', 'media', 'websocket', 'other']
           }
         });
@@ -101,6 +113,7 @@ function updateRules() {
     
     // Add global rule if set (lower priority)
     if (globalUserAgent) {
+      console.log(`Creating global rule with UA: ${globalUserAgent.substring(0, 30)}...`);
       rules.push({
         id: ruleId++,
         priority: 1, // Lower priority than website-specific rules
@@ -133,7 +146,12 @@ function updateRules() {
         if (chrome.runtime.lastError) {
           console.error('Error updating rules:', chrome.runtime.lastError);
         } else {
-          console.log('Rules updated successfully:', rules);
+          console.log('Rules updated successfully. Total rules:', rules.length);
+          
+          // Log all the rules for debugging
+          chrome.declarativeNetRequest.getDynamicRules((currentRules) => {
+            console.log('Current active rules:', currentRules);
+          });
         }
       });
     });
